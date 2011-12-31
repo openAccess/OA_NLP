@@ -17,13 +17,17 @@
 '''
 # Commandline parser setupgitPLoS.search.plosquery
 import json
+from os import mkdir
 from optparse import OptionParser 
 from gitPLoS.search.query import Query, mkJrnlQuery
 from gitPLoS.nltk.corpus.builder import Builder, ReturnFields
 
 usage = "usage: %prog [optionS] query1 query2 ..."
 parser = OptionParser(usage=usage)
-	
+
+parser.add_option('-n', '--name', action='store', dest='name', default='myCorpus',
+		 help='Name of corpus. Default is "myCorpus". Creates a directory ' +
+		 'and puts all files related to the corpus there.')
 parser.add_option('-j', '--journal', 
                  action='store', dest='jrnl', default=None,
                  help='Default journal is "all". One of more journals can be specified ' + \
@@ -49,16 +53,22 @@ if opts.jrnl is not None:
 if len(args) == 0:
    args = args + ['*:*']
 
-pq = Query( api_key=opts.api_key, limit=opts.limit, verbose=opts.verbose )
-pq.query(args, ReturnFields)
+# Corpus directory
+mkdir(opts.name)
+
+# Setup and execute the query
+plos_q = Query( api_key=opts.api_key, limit=opts.limit, verbose=opts.verbose )
+plos_q.query(args, ReturnFields)
 fields = ReturnFields.split(',')
-count = 0
-for r in pq:
-    print 'Rec#%d' % (count)
+
+file_list = []
+# The wuery is iterable 
+for doc in plos_q:
     b = Builder()
-    doc = b.build(r)
-    print json.dumps(doc, indent=5)
-    '''for f in fields:
-        print u'%s:  %s\n' % (f, r.get(f))
-	'''
-    count += 1
+    corpus_entry = b.build( doc )
+    fn = corpus_entry['id'].replace('/','-') + '.json'
+    fd = open( opts.name + '/' + fn, 'w')
+    json.dump( doc, fd, indent=5 )
+    print 'Added : ' + fn
+    fd.close()
+    file_list.append(fn)

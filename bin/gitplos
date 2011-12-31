@@ -17,7 +17,7 @@
 '''
 # Commandline parser setupgitPLoS.search.plosquery
 from optparse import OptionParser 
-from gitPLoS.search.plosquery import Query, mkJrnlQuery
+from gitPLoS.search.query import Query, mkJrnlQuery
 
 usage = "usage: %prog [optionS] query1 query2 ..."
 parser = OptionParser(usage=usage)
