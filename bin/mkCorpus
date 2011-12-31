@@ -18,6 +18,7 @@
 # Commandline parser setupgitPLoS.search.plosquery
 import json
 from os import mkdir
+from datetime import datetime 
 from optparse import OptionParser 
 from gitPLoS.search.query import Query, mkJrnlQuery
 from gitPLoS.nltk.corpus.builder import Builder, ReturnFields
@@ -61,10 +62,15 @@ plos_q = Query( api_key=opts.api_key, limit=opts.limit, verbose=opts.verbose )
 plos_q.query(args, ReturnFields)
 fields = ReturnFields.split(',')
 
+corpus_info = {}
+corpus_info['creation_date'] = datetime.now().isoformat() 
 file_list = []
+corpus_info['file_list'] = file_list
+corpus_info['name'] = opts.name
+
 # The wuery is iterable 
+b = Builder()
 for doc in plos_q:
-    b = Builder()
     corpus_entry = b.build( doc )
     fn = corpus_entry['id'].replace('/','-') + '.json'
     fd = open( opts.name + '/' + fn, 'w')
@@ -72,3 +78,11 @@ for doc in plos_q:
     print 'Added : ' + fn
     fd.close()
     file_list.append(fn)
+
+corpus_info['stop_words'] = b.stop_words
+corpus_info['query'] = args
+
+fd = open( opts.name + '/corpus_info.json', 'w')
+json.dump( corpus_info, fd, indent=5 )
+fd.close()
+
