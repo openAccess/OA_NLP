@@ -1,0 +1,64 @@
+#! /usr/bin/env python
+'''
+   Author: Bill OConnor 
+   Description: Command line tools for PLoS search API
+
+   The Public Library of Science (PLoS) publishes peer 
+   reviewed research under the Creative Commons license. 
+   All articles are available to the public free of charge. 
+   Info regarding the RESTful web API to the PLoS Solr based 
+   search engine is available at http://api.plos.org. 
+   
+   This is a collection of python modules and commandline 
+   tools to aid in using this api. 
+
+   License: http://www.opensource.org/licenses/mit-license.php
+
+'''
+# Commandline parser setupgitPLoS.search.plosquery
+import json
+from optparse import OptionParser 
+from gitPLoS.search.query import Query, mkJrnlQuery
+from gitPLoS.nltk.corpus.builder import Builder, ReturnFields
+
+usage = "usage: %prog [optionS] query1 query2 ..."
+parser = OptionParser(usage=usage)
+	
+parser.add_option('-j', '--journal', 
+                 action='store', dest='jrnl', default=None,
+                 help='Default journal is "all". One of more journals can be specified ' + \
+                 'comma separated identifier list. [pone,pbio,pmed,pgen,pcbi,pntd,ppat].' )
+parser.add_option('-l', '--limit', 
+                 action='store', dest='limit', type='int', default=99,
+                 help='Maximum number of documents to return. default=99' )
+parser.add_option("-v", "--verbose", 
+                 action='store_true', dest='verbose', default=False,
+                 help='Verbose mode for debugging.' ) 
+parser.add_option('-a', '--api-key',
+                 action='store', dest='api_key', default='7Jne3TIPu6DqFCK',
+                 help='API key obtained from PLoS.' ) 
+	
+(opts, args) = parser.parse_args()
+	
+# Parse the journal options and add them to the query
+# Journal name are logically OR'd 
+if opts.jrnl is not None:
+    args.append(mkJrnlQuery(opts.jrnl.split(',')))
+    
+# if no argument specified, wildcard search '*:*'
+if len(args) == 0:
+   args = args + ['*:*']
+
+pq = Query( api_key=opts.api_key, limit=opts.limit, verbose=opts.verbose )
+pq.query(args, ReturnFields)
+fields = ReturnFields.split(',')
+count = 0
+for r in pq:
+    print 'Rec#%d' % (count)
+    b = Builder()
+    doc = b.build(r)
+    print json.dumps(doc, indent=5)
+    '''for f in fields:
+        print u'%s:  %s\n' % (f, r.get(f))
+	'''
+    count += 1
