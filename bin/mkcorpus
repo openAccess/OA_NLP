@@ -16,9 +16,7 @@
 
 '''
 # Commandline parser setupgitPLoS.search.plosquery
-import json
-from os import mkdir
-from datetime import datetime 
+
 from optparse import OptionParser 
 from gitPLoS.search.query import Query, mkJrnlQuery
 from gitPLoS.nltk.corpus.builder import Builder, ReturnFields
@@ -53,36 +51,12 @@ if opts.jrnl is not None:
 # if no argument specified, wildcard search '*:*'
 if len(args) == 0:
    args = args + ['*:*']
-
-# Corpus directory
-mkdir(opts.name)
+# Do this first in the event making the directory fails
+b = Builder( args, corpus_name=opts.name )
 
 # Setup and execute the query
-plos_q = Query( api_key=opts.api_key, limit=opts.limit, verbose=opts.verbose )
+plos_q = Query( api_key=opts.api_key, limit=opts.limit )
 plos_q.query(args, ReturnFields)
-fields = ReturnFields.split(',')
 
-corpus_info = {}
-corpus_info['creation_date'] = datetime.now().isoformat() 
-file_list = []
-corpus_info['file_list'] = file_list
-corpus_info['name'] = opts.name
-
-# The wuery is iterable 
-b = Builder()
-for doc in plos_q:
-    corpus_entry = b.build( doc )
-    fn = corpus_entry['id'].replace('/','-') + '.json'
-    fd = open( opts.name + '/' + fn, 'w')
-    json.dump( doc, fd, indent=5 )
-    print 'Added : ' + fn
-    fd.close()
-    file_list.append(fn)
-
-corpus_info['stop_words'] = b.stop_words
-corpus_info['query'] = args
-
-fd = open( opts.name + '/corpus_info.json', 'w')
-json.dump( corpus_info, fd, indent=5 )
-fd.close()
+b.build( plos_q, verbose=opts.verbose )
 
