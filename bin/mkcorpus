@@ -15,7 +15,7 @@
    License: http://www.opensource.org/licenses/mit-license.php
 
 '''
-# Commandline parser setupgitPLoS.search.plosquery
+# Commandline parser gitPLoS.search.query
 
 from optparse import OptionParser 
 from gitPLoS.search.query import Query, mkJrnlQuery

@@ -33,7 +33,7 @@ _JMap = {
 		'PLoS ONE'                   : 'http://www.plosone.org',
 		'PLoS Neglected Tropical Diseases' : 'http://www.plosntds.org',
 		'PLoS Clinical Trials'       : 'http://clinicaltrials.ploshubs.org',
-		'PLoS Pathogens'             : 'http://www.plospathogens.org'
+		'PLoS Pathogens'             : 'http://www.plospathogens.org',
 	    }
 '''
    _JIds - map a 4 character journal id to quoted journal name.
@@ -49,19 +49,23 @@ _JIds = {
 		'ppat' : '"PLoS Pathogens"'
 	}	
 
-def articleUrl(doi,jid):
+def articleUrl(doi):
     '''
     articleUrl- return a valid link to the article page given the journal
                 4 character identifier and the article doi.
     '''
-    return _JMap[jid] + '/article/' + quote('info:doi/' + doi)
+    (tendot, slashJrnl, jid, nid) = doi.split('.')
+    jrnl = _JIds[jid].replace('"', '')
+    return _JMap[jrnl] + '/article/' + quote('info:doi/' + doi)
 
-def articleXML(doi,jid):
+def articleXML(doi):
     '''
     articleXML - return a valid link to the article XML give the journal
                  4 character identifier and the article doi.
     '''
-    return _JMap[jid] + '/article/fetchObjectAttachment.action?uri=' + quote('info:doi/' + doi) +\
+    (tendot, slashJrnl, jid, nid) = doi.split('.')
+    jrnl = _JIds[jid].replace('"', '')
+    return _JMap[jrnl] + '/article/fetchObjectAttachment.action?uri=' + quote('info:doi/' + doi) +\
                         '&representation=XML'
  
 def mkQueryUrl(url, query):
