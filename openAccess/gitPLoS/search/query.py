@@ -69,7 +69,7 @@ def mkQueryUrl(url, query):
     mkQuery - given a url and a dictionary of parameters keys and values
               create a valid url query string.
     '''
-    paramList = [ "%s=%s" % (k, quote(v)) for k,v in query.iteritems()]
+    paramList = [ '%s=%s' % (k, quote(v)) for k,v in query.iteritems()]
     return url + "&".join(paramList) 
 
 def mkJrnlQuery(jrnls):
@@ -138,7 +138,7 @@ class Query:
 	# If we are iterating skip the assembling the query.
         if not iterate:
             if len(args) > 0:
-                self.qmap['q'] = " AND ".join(args)	   
+                self.qmap['q'] = ' AND '.join(args)    
             self.qmap['fl'] = fields 
 
         (header, resp, url) = self._doQuery(self.qmap)

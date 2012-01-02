@@ -40,7 +40,6 @@ parser.add_option("-v", "--verbose",
 parser.add_option('-a', '--api-key',
                  action='store', dest='api_key', default='7Jne3TIPu6DqFCK',
                  help='API key obtained from PLoS.' ) 
-	
 (opts, args) = parser.parse_args()
 	
 # Parse the journal options and add them to the query
