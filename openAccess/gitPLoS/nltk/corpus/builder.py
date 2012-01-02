@@ -37,7 +37,6 @@ class Builder():
 	    if verbose: print 'Added : ' + fn
 	    fd.close()
             fileids[doi] = ( fn, articleUrl( doi ), articleXML( doi) )
-	    print fileids[doi][0] + ' ' + fileids[doi][1] + ' ' + fileids[doi][2]
 	    # Keep a hash of subjects and the id's associated with it
 	    if 'subject' in doc:
 	        for s in doc['subject']:
@@ -46,7 +45,7 @@ class Builder():
                     else:
                         categories[s] = [ doi ]
             else:
-		if verbsoe: print 'id: %s article_type : %s do not have subjects' % \
+		if verbose: print 'id: %s article_type : %s do not have subjects' % \
                       ( doi, doc['article_type'] )
            
 	# Output the corpus info
