@@ -65,8 +65,8 @@ def articleXML(doi):
     '''
     (tendot, slashJrnl, jid, nid) = doi.split('.')
     jrnl = _JIds[jid].replace('"', '')
-    return _JMap[jrnl] + '/article/fetchObjectAttachment.action?uri=' + quote('info:doi/' + doi) +\
-                        '&representation=XML'
+    return _JMap[jrnl] + '/article/fetchObjectAttachment.action?uri=' + \
+           quote('info:doi/' + doi) + '&representation=XML'
  
 def mkQueryUrl(url, query):
     '''	

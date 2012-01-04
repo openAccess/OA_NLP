@@ -36,17 +36,15 @@ class Builder():
 	    json.dump( doc, fd, indent=5 )
 	    if verbose: print 'Added : ' + fn
 	    fd.close()
-            fileids[doi] = ( fn, articleUrl( doi ), articleXML( doi) )
+	    # If the is a subject key in doc save the subject list else []
+	    sl = doc['subject'] if 'subject' in doc else []
+	    fileids[doi] = ( fn, articleUrl( doi ), articleXML( doi), sl )
 	    # Keep a hash of subjects and the id's associated with it
-	    if 'subject' in doc:
-	        for s in doc['subject']:
-                    if s in categories:
-		        categories[s].append( doi )
-                    else:
-                        categories[s] = [ doi ]
-            else:
-		if verbose: print 'id: %s article_type : %s do not have subjects' % \
-                      ( doi, doc['article_type'] )
+	    for s in sl:
+                if s in categories:
+		    categories[s].append( doi )
+                else:
+                    categories[s] = [ doi ]
            
 	# Output the corpus info
 	if verbose:
