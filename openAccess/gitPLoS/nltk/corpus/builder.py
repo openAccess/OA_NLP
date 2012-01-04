@@ -23,7 +23,7 @@ class Builder():
     def build(self, doc_list, verbose=False):
 	'''
         Create a json file for each doc returned by the query.
-	:Then create a corpus info file.
+	Then create a corpus info file.
 	'''
 	name = self.corpus_info['name']
 	fileids = self.corpus_info['fileids']
@@ -42,7 +42,7 @@ class Builder():
 	    # Keep a hash of subjects and the id's associated with it
 	    for s in sl:
                 if s in categories:
-		    categories[s].append( doi )
+                    categories[s].append( doi )
                 else:
                     categories[s] = [ doi ]
            
