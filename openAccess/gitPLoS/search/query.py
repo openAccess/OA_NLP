@@ -98,7 +98,12 @@ class Query(object):
                 
     # Iterator Protocol       
     def __iter__(self):
-	self.cursor = -1
+	"""
+	TODO: This allows the iterator to be reused if
+	      limit == maxRows. But should be fixed for
+	      the more general case.
+	"""
+        self.cursor = -1
         return self
        
     def next(self):
