@@ -19,7 +19,7 @@
 
 from optparse import OptionParser 
 from gitPLoS.search.query import Query, mkJrnlQuery
-from gitPLoS.nltk.corpus.builder import Builder, ReturnFields
+from gitPLoS.nltk.corpus.builder import Builder, QUERY_RTN_FLDS 
 
 usage = "usage: %prog [optionS] query1 query2 ..."
 parser = OptionParser(usage=usage)
@@ -51,11 +51,19 @@ if opts.jrnl is not None:
 if len(args) == 0:
    args = args + ['*:*']
 # Do this first in the event making the directory fails
-b = Builder( args, corpus_name=opts.name )
+b = Builder( args, name=opts.name )
 
-# Setup and execute the query
-plos_q = Query( api_key=opts.api_key, limit=opts.limit )
-plos_q.query(args, ReturnFields)
+"""
+Setup and execute the query
 
-b.build( plos_q, verbose=opts.verbose )
+The builder iterates over the query results twice. This currently
+breaks the iterator of the query object. The temporary solution is
+to make the limit and max rows the name number so the entire query
+completes on the first request.
+
+""" 
+plos_q = Query( api_key=opts.api_key, limit=opts.limit, maxRows=opts.limit )
+plos_q.query(args, ','.join(QUERY_RTN_FLDS))
+
+b.build(plos_q)
 

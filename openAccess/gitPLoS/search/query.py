@@ -79,7 +79,7 @@ def mkQueryUrl(url, query):
 def mkJrnlQuery(jrnls):
     return 'journal:(' + ' OR '.join( [_JIds[j] for j in jrnls] ) + ')'
 
-class Query:
+class Query(object):
     '''
         PlosQuery - provides basic framework to access PLoS http://api.plos.org.       
     '''
@@ -98,6 +98,7 @@ class Query:
                 
     # Iterator Protocol       
     def __iter__(self):
+	self.cursor = -1
         return self
        
     def next(self):
