@@ -5,7 +5,7 @@ Author: Bill OConnor
 
 DFLT_DOC_PART = 'body'
 
-def doi2fn(doi):
+def doi2fn(doi, doc_part):
     """
     Convert a DOI to a file name.
 
@@ -15,7 +15,7 @@ def doi2fn(doi):
     @rtype: string or list
     @return: Returns a single file name or a list of filenames..
     """
-    fname = lambda d: '%s.json' % ( d.replace('/', '-'))
+    fname = lambda d: '%s-%s.txt' % ( d.replace('/', '-'), doc_part)
     if isinstance(doi, basestring): 
         return fname(doi)
     else:
