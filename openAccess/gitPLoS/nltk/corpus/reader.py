@@ -3,10 +3,35 @@ Author: Bill OConnor
 
 """
 import json
-from util import doi2fn, listafy, DFLT_DOC_PART
-from nltk import word_tokenize, sent_tokenize
+from nltk.corpus.reader.plaintext import  CategorizedPlaintextCorpusReader
 
-class PlosReader(object):
+def _doi2fn(doi, doc_part):
+    """
+    Convert a DOI to a file name.
+
+    @type doi: string or list
+    @param doi: Digital Object Identifier of the article in the corpus.
+
+    @rtype: string or list
+    @return: Returns a single file name or a list of filenames..
+    """
+    fname = lambda d: '%s-%s.txt' % ( d.replace('/', '-'), doc_part)
+    if isinstance(doi, basestring): 
+        return fname(doi)
+    else:
+        return [ fname(d) for d in doi ]
+
+def _listafy(obj, aDict):
+    """
+    """
+    if obj == None:
+        return aDict.keys()
+    elif isinstance(obj, basestring):
+        return [ obj ]
+    else:
+        return obj
+
+class PlosReader(CategorizedPlaintextCorpusReader):
     """
     PlosReader is loosely modeled on ntlk.corpus.api.CategorizedCorpusReader.
     A corpus is generated iby the mkcorpus tool which uses a Solr query to select 
@@ -20,152 +45,98 @@ class PlosReader(object):
     in nltk.readers.
 
     """
-    def __init__(self, root='./', name='myCorpus'):
+    def __init__(self, root, **kwargs):
         """
 	Initialize a PLoS reader with a specific corpus. Corpus 
 	information is contained in 'root/corpus_info.json' file. The
 
         @type  root: string
 	@param root: The directory path to the corpus directory.
-	@type  name: string
-	@param name: The corpus name/directory. A PLoS corpus is 
-	             a directory of article files stored in JSON format.
-	@rtype:  PlosReader
-	@return: An initialized Plos reader object  
         """
-        self.root = root
-        self.name = name
-        fp = open( '%s/%s/corpus_info.json' % (root, name), 'r' )
-        self.corpus_info = json.load(fp)
+        self._root = root
+        fp = open( '%s/corpus_info.json' % (root), 'r' )
+        self._corpus_info = info = json.load(fp)
         fp.close()
-        return
 
-    def corpus_info(self):
+        # doc_part is specific to PLoS and articles in general.
+	# 'abstract' and 'body' are currently supported.
+	# The corpus contains seperate text for each so the 
+	# reader is initialized to read one or the other.
+        doc_part = kwargs['doc_part']  if 'doc_part' in kwargs else 'body'
+        self._doc_part = doc_part
+        fileids = [ _doi2fn(d, doc_part) for d in info['d2c'].keys() ] if 'fileids' not in kwargs else kwargs['fileids']
+
+        # cat_map doi -> [ f1, f2, ...]
+	# The fileids depend on what the doc_part is ('body', 'abstract')
+	cat_map = {}
+        for k,dois in info['c2d'].iteritems():
+            cat_map[k] = [ _doi2fn(d, doc_part) for d in dois ]
+
+	kwargs['cat_map'] = cat_map
+	# Subclass of Categorized Plaintext Corpus Reader
+        CategorizedPlaintextCorpusReader.__init__(self, root, fileids, **kwargs)
+
+    def articleURL(self, doi_lst=None):
+        """
+        """
+	dois = _listafy(doi_lst, self.corpus_info['d2c'])
+	amap = self._corpus_info['article_link']
+        return zip(dois, [ amap[d] for d in dois])
+
+    def articleXML(self, doi_lst=None):
+        """
+        """
+	dois = _listafy(doi_lst, self._corpus_info['d2c'])
+	xmap = self._corpus_info['xml_link']
+        return zip(dois, [ xmap[d] for d in dois ])
+
+    def doi2fid(self, doi_lst=None):
+        """
+        """
+        dois = _listafy(doi_lst, self._corpus_info['d2c']) 
+        return zip(dois, _doi2fn(dois, self._doc_part))
+
+    def authors(self, doi_lst=None):
+        """
+        Build a list of (doi , author) tuples.
 	"""
-	"""
-        return self.corpus_info
-
-    def articleURL(self, fileids=None):
-        """
-        """
-	fids = listafy(fileids, self.corpus_info['f2c'])
-	amap = self.corpus_info['article_link']
-	return [ amap[f] for f in fids]
-
-    def articleXML(self, fileids=None):
-        """
-        """
-	fids = listafy(fileids, self.corpus_info['f2c'])
-	xmap = self.corpus_info['xml_link']
-        return [ xmap[f] for f in fids ]
-
-    def fileids(self, categories=None):
-        """
-	File ids (fileids) are not the file names of the article but the
-	Digital Object Identifier (DOI). doi2fn converts the doi to a file
-	name.
-
-        @type categories: None or string or list
-	@param categories: a list of article categories 
-	@rtype: list
-	@return: The list of article fileids that repesent articles from
-	         the list of categories.
-	"""
-        # Return all fileids if categories == None
-        if categories == None: return self.corpus_info['f2c'].keys()
-        
-        # Make single category strings into a list
-        cats = [ categories ] if isinstance(categories, basestring) else categories
-        # Foreach cat get the fileids. Make a unique list
-        flist = []
-        c2fmap = self.corpus_info['c2f']
-        for c in c2fmap:
-            flist.extend( c2fmap[c] )
-        # Return a list of unique ids
-        return [ f for f in set(flist) ]
-
-    def categories(self, fileids=None):
-        """
-        Categories are the subjects of the articles. Not all article types have
-	subjects. If the article is a Primer, Synopsis, Review etc. the subject
-	list will be empty.
-        
-	@type fileids: None or string or list
-        @param fileids: The file ids 
-	@rtype: list
-	@return: list of unique categories associated with the fileids.
-	"""
-	# Return all categories if fileid == None
-	if fileids == None: return self.corpus_info['c2f'].keys()
-
-        # Make a single fileid into a list
-        fids = [ fileids ] if isinstance(fileids, basestring) else fileids
-	# Build a unique list of categories for each fileid
-	clist =[]
-        f2cmap = self.corpus_info['f2c']
-	for doi in f2cmap:
-            clist.extend(fmap[fid])
-        # Return a list of unique categories
-        return [ c for c in set(clist) ]
-
-    def authors(self, fileids=None):
-        """
-        Build a list of authors of the articles specified by fileids.
-
-	@type fileids: None or string or list
-	@param fileids: The file identifiers for each article in the corpus (DOI).
-	                None returns all the file ids.
-	@rtype: list
-	@return: The list of authors of the specified articles.
-	"""
-        fids = listafy(fileids, self.corpus_info['f2c'])
-     
+        dois = _listafy(doi_lst, self._corpus_info['d2c'])
+	d2info = self._corpus_info['d2info']
 	alist = []
-	fnames = [ '%s/%s/%s' % (self.root, self.name, fn) for fn in doi2fn(fids) ] 
-	for fn in fnames:
-	    fd = open( fn, 'r' )
-	    alist.extend(json.load(fd)['author'])
-            fd.close()
-	return [ a for a in set(alist) ]
+	for d in dois:
+            (_,_,_,_,authors) = d2info[d]
+	    alist.extend([ (d, a) for a in authors])
+        return alist
 
-    def raw(self, fileids=None, doc_part=DFLT_DOC_PART):
+    def pub_date(self, doi_lst=None):
         """
-        Return the requested document part as a single string.
-	If there are multiple fileids then raw text from multiple
-	articles is concatenated into a single string.
+        """
+        dois = _listafy(doi_lst, self._corpus_info['d2c'])
+	d2info = self._corpus_info['d2info']
+	dlist = []
+	for d in dois:
+            (_,pd,_,_,_) = d2info[d]
+	    dlist.extend((d, pd))
+        return dlist
 
-	@type fileids: None or string or list
-	@param fileids: The file identifiers for each article in the corpus (DOI).
-	                None returns all the file ids.
-	@type  doc_part: string
-	@param doc_part: the article part i.e. 'body', 'abstract'
-	@rtype: string
-	@return: The concatenated raw text of articles specified in the fileids list.
-	"""
-        fids = listafy(fileids, self.corpus_info['f2c'])
-     
-	raw_text = ''
-	fnames = [ '%s/%s/%s' % (self.root, self.name, fn) for fn in doi2fn(fids) ] 
-	for fn in fnames:
-	    fd = open( fn, 'r' )
-	    doc = json.load(fd)
-	    if doc_part in doc:
-                # Abstracts come in a list - if doc_part is a list use the first entry
-		part = doc[doc_part] if isinstance(doc[doc_part], basestring) else doc[doc_part][0]
-                raw_text += part 
-            fd.close()
-	return raw_text
+    def article_type(self, doi_lst=None):
+        """
+        """
+        dois = _listafy(doi_lst, self._corpus_info['d2c'])
+	d2info = self._corpus_info['d2info']
+	alist = []
+	for d in dois:
+            (_,_,atype,_,_) = d2info[d]
+	    alist.extend((d, atype))
+        return alist
 
-    def words(self, fileids=None, doc_part=DFLT_DOC_PART):
+    def title(self, doi_lst=None):
         """
-        Tokenizes the raw text of the fileids specified using the 
-        default word_tokenizer in nltk.
-	"""
-        return word_tokenize(self.raw(fileids=fileids, doc_part=doc_part))
-    
-    def sents(self, fileids=None, doc_part=DFLT_DOC_PART):
         """
-	Tokenizes the raw text of the fileids specified using the
-	default sents_tokenizer in nltk.
-        """
-        return sent_tokenize(self.raw(fileids=fileids, doc_part=doc_part))
+        dois = _listafy(doi_lst, self._corpus_info['d2c'])
+	d2info = self._corpus_info['d2info']
+	tlist = []
+	for d in dois:
+            (_,_,_,t,_) = d2info[d]
+	    tlist.extend((d, t))
+        return tlist
