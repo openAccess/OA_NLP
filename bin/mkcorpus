@@ -51,19 +51,26 @@ if opts.jrnl is not None:
 if len(args) == 0:
    args = args + ['*:*']
 # Do this first in the event making the directory fails
-b = Builder( args, name=opts.name )
+b = Builder( args, opts.name )
 
 """
 Setup and execute the query
 
 The builder iterates over the query results twice. This currently
-breaks the iterator of the query object. The temporary solution is
-to make the limit and max rows the name number so the entire query
-completes on the first request.
-
+breaks the iterator of the query object. The work around is to
+iterate through all the results and add them as individual items
+to the builder.
 """ 
-plos_q = Query( api_key=opts.api_key, limit=opts.limit, maxRows=opts.limit )
+plos_q = Query( api_key=opts.api_key, limit=opts.limit )
 plos_q.query(args, ','.join(QUERY_RTN_FLDS))
 
-b.build(plos_q)
+if opts.verbose:
+    print "%s docs returned." % plos_q.numFound
+#Add each result to the builder
+for d in plos_q:
+    if opts.verbose:
+        print "Adding %s" % d['id']
+    b.add([d])
+# Finish the corpus build by writing out the corpus_info.json
+b.finalize()
 

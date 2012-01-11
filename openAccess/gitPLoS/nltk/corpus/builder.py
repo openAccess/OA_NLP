@@ -45,7 +45,7 @@ class Builder(object):
         @return: Nothing
         """
         self.add(docs)
-        self.finailize()
+        self.finalize()
         return
 
     def add(self, docs):
@@ -82,9 +82,14 @@ class Builder(object):
             amap[doi] = articleUrl(doi)
             # doi -> artilce xml link
             xmap[doi] = articleXML(doi)
-            d2infomap[doi] =  (doc['journal'], doc['publication_date'],
-			       doc['article_type'], doc['title'], doc['author']
-			      )
+	    # Depending on the article type some of these might not exist.
+	    jrnl = doc['journal'] if 'journal' in doc else ''
+	    pub_date = doc['publication_date'] if 'publication_date' in doc else ''
+	    atype = doc['article_type'] if 'article_type' in doc else ''
+	    title = doc['title'] if 'title' in doc else ''
+	    author = doc['author'] if 'author' in doc else []
+
+            d2infomap[doi] =  (jrnl, pub_date, atype, title, author)
        
         fnames = [ doi2fn(doi, 'body') for doi in d2cmap.keys() ]
         fnames_docs = zip(fnames, docs)

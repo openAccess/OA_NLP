@@ -58,9 +58,9 @@ class PlosReader(CategorizedPlaintextCorpusReader):
         self._corpus_info = info = json.load(fp)
         fp.close()
 
-        # doc_part is specific to PLoS and articles in general.
+        # doc_part is specific to PLoS and research article in general.
 	# 'abstract' and 'body' are currently supported.
-	# The corpus contains seperate text for each so the 
+	# The corpus contains seperate text for eachi, so the 
 	# reader is initialized to read one or the other.
         doc_part = kwargs['doc_part']  if 'doc_part' in kwargs else 'body'
         self._doc_part = doc_part
@@ -76,10 +76,15 @@ class PlosReader(CategorizedPlaintextCorpusReader):
 	# Subclass of Categorized Plaintext Corpus Reader
         CategorizedPlaintextCorpusReader.__init__(self, root, fileids, **kwargs)
 
+    def dois(self):
+        """
+        """
+        return self._corpus_info['d2c'].keys()
+
     def articleURL(self, doi_lst=None):
         """
         """
-	dois = _listafy(doi_lst, self.corpus_info['d2c'])
+	dois = _listafy(doi_lst, self._corpus_info['d2c'])
 	amap = self._corpus_info['article_link']
         return zip(dois, [ amap[d] for d in dois])
 
