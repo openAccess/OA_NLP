@@ -66,11 +66,11 @@ class PlosReader(CategorizedPlaintextCorpusReader):
         self._doc_part = doc_part
         fileids = [ _doi2fn(d, doc_part) for d in info['d2c'].keys() ] if 'fileids' not in kwargs else kwargs['fileids']
 
-        # cat_map doi -> [ f1, f2, ...]
+        # cat_map f -> [ c1, c2, ...]
 	# The fileids depend on what the doc_part is ('body', 'abstract')
 	cat_map = {}
-        for k,dois in info['c2d'].iteritems():
-            cat_map[k] = [ _doi2fn(d, doc_part) for d in dois ]
+        for d,cat in info['d2c'].iteritems():
+            cat_map[_doi2fn(d, doc_part)] = cat
 
 	kwargs['cat_map'] = cat_map
 	# Subclass of Categorized Plaintext Corpus Reader
