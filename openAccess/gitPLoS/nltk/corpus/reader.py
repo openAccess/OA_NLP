@@ -60,7 +60,7 @@ class PlosReader(CategorizedPlaintextCorpusReader):
             self._doc_part = doc_part = kwargs['doc_part']
 	    del kwargs['doc_part']
 	else:
-	    delf._doc_part = doc_part = 'body'
+	    self._doc_part = doc_part = 'body'
 	if 'fileids' not in kwargs:
             fileids = [ doi2fn(d, doc_part) for d in info['d2c'].keys() ] 
         else:
