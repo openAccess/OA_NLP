@@ -65,13 +65,10 @@ class kNN(object):
             x_lst = [x]
 
         # Calculate distance tuples (distance,category,value)
-        dist = [ (dist_fn(x_lst, v), c, v) for c,v in self.data ]
-        # Sort by distance, shortest first. 
-	dist.sort()
+        dist = sorted([ (dist_fn(x_lst, v), c, v) for c,v in self.data ])
         weights = { c : 0.0 for c,v in data }
 	for d,c,v in dist[:self.k]:
             weights[c] += wt_fn(x,v) 
-
         return sorted([ (v, c) for c,v in weights.iteritems() ], reverse=True)
 
     def classify(self, x, **kwargs):
@@ -81,3 +78,4 @@ class kNN(object):
 	if len(class_lst) > 0:
             return class_lst[0]
         return None
+
