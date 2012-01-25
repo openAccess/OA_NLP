@@ -1,7 +1,13 @@
 #! /usr/bin/env python
-'''
-   Author: Bill OConnor 
-   Description: Command line tools for PLoS search API
+# Author: Bill OConnor 
+# Copyright: 2011-2012 Bill OConnor and openAccess Project
+# License: see LICENSE.txt for this project
+
+"""
+   Description 
+   ===========
+
+   Command line tools for PLoS search API
 
    The Public Library of Science (PLoS) publishes peer 
    reviewed research under the Creative Commons license. 
@@ -14,7 +20,7 @@
 
    License: http://www.opensource.org/licenses/mit-license.php
 
-'''
+"""
 # Commandline parser setupgitPLoS.search.plosquery
 from optparse import OptionParser 
 from gitPLoS.search.query import Query, mkJrnlQuery
