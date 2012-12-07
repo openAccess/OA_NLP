@@ -10,7 +10,7 @@ from gitPLoS.search.query import articleUrl, articleXML
 # These fields are required for the corpus
 QUERY_RTN_FLDS = ['id','journal','publication_date',
                   'article_type','author','subject',
-                  'title','abstract','body',
+                  'title','abstract','body','editor',
                  ]
 
 class Builder(object):
@@ -60,7 +60,7 @@ class Builder(object):
         """
         root = self._root
         info = self._corpus_info
-        d2cmap = {}; c2dmap = {}; d2infomap = {}
+        d2cmap = {}; c2dmap = defaultdict(list); d2infomap = {}
         amap = info['article_link']
         xmap = info['xml_link']
         # Build all the lists and mappings
@@ -74,10 +74,7 @@ class Builder(object):
             d2cmap[doi] = subjs = doc['subject']
             # Category -> [ f1, f2, .... ]
             for s in subjs:
-               if s in c2dmap:
-                  c2dmap[s].append(doi)
-               else:
-                  c2dmap[s] = [ doi ]
+                c2dmap[s].append(doi)
             # doi -> article link
             amap[doi] = articleUrl(doi)
             # doi -> artilce xml link
