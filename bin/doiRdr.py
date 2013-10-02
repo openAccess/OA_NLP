@@ -10,6 +10,7 @@ from urllib2 import urlopen, quote
 from datetime import datetime, timedelta
 
 SEARCH_URL_TMPL = 'http://api.plos.org/search?{params}'
+ENTREZ_URL_TMPL = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=XML&id={id}'
 
 def search(query='*:*'):
     '''
