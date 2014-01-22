@@ -17,6 +17,7 @@
 '''
 import json
 from urllib2  import urlopen, quote, unquote
+import requests
 	
 __version__ = "0.1"
 __all__ = ['articleUrl', 'articleXML', 'PlosSearch']
@@ -90,7 +91,6 @@ class Query(object):
         self.qmap = {
 		    'start': str(self.start),
                     'rows': str(self.maxRows),
-                    'fq': 'doc_type:full AND !article_type_facet:"Issue Image"',
                     'wt': 'json',
                     'api_key': api_key,
                    } 
@@ -126,13 +126,28 @@ class Query(object):
 
     def __getitem__(self):
         return self.docs[self.cursor]
+
+    def _doGet(self, url):
+        """
+        Requests for Humans not so human after all.
+        The verfiy parameter fails if the URL is not https:(
+        """
+        if url.lower().startswith('https:'):
+            return requests.get(url, verify=False)
+        else:
+            return requests.get(url)
                          
     def _doQuery(self, query):
         '''
         '''
         url = mkQueryUrl(_searchUrl, query )
-        j = json.load(urlopen(url))
-        return (j['responseHeader'],j['response'], url)
+        r = self._doGet(url)
+        if r.status_code == 200:
+            # Load JSON into a Python object and use some values from it.
+            return json.loads(r.content)
+        else:
+            raise Exception('doQuery: failed ' + url)
+
 	
     def query(self, args, fields, iterate=False):
         '''
@@ -145,22 +160,25 @@ class Query(object):
 	              re-submit the request. Only used when the row limit
 		      is larger than maxRows.
 	'''
+        import pprint 
+        pp = pprint.PrettyPrinter(indent=2)
+
 	# If we are iterating skip the assembling the query.
         if not iterate:
             if len(args) > 0:
                 self.qmap['q'] = ' AND '.join(args)    
             self.qmap['fl'] = fields 
 
-        (header, resp, url) = self._doQuery(self.qmap)
-        self.status = header['status']; self.QTime = header['QTime']
-        self.numFound = resp['numFound']
-        self.docs = resp['docs']
+        srchResult = self._doQuery(self.qmap)['response']
+        #self.status = srchResult['status']; self.QTime = ['QTime']
+        self.numFound = srchResult['numFound']
+        self.docs = srchResult['docs']
                 
-        if self.verbose: 
-            print 'Query url: ' + unquote(url) 
-            print 'Status: %s\nQTIme: %s\nStart: %s\nnumFound: %s\n' % \
-              (self.status, self.QTime, self.start, self.numFound)
-            print json.dumps(self.docs, indent=5)
+        #if self.verbose: 
+        #    print 'Query url: ' + unquote(url) 
+        #    print 'Status: %s\nQTIme: %s\nStart: %s\nnumFound: %s\n' % \
+        #      (self.status, self.QTime, self.start, self.numFound)
+        #    print json.dumps(self.docs, indent=5)
 
         return self.docs
 	
