@@ -5,7 +5,6 @@ This is the setup file to install gitPLOS.
 from distutils.core import setup
 #from setuptools import setup
 
-
 def long_description():
     with open('README.md', 'r') as readme:
         readme_text = readme.read()
@@ -21,10 +20,10 @@ setup(name='gitPLOS',
       package_dir={'': 'src'},
       packages=['gitPLOS',
                 'gitPLOS.nltk',
-                'gitPLOS.search',
+                'gitPLOS.plosapi',
                 ],
 
-      scripts=['scripts/oaepub'],
+      scripts=['bin/gitplos'],
       data_files=[('', ['README.md'])],
       classifiers=['Development Status :: 3 - Alpha',
                    'Environment :: Console',
