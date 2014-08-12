@@ -1,5 +1,5 @@
 """
-This is the setup file to install gitPLOS.
+This is the setup file to install oa_nlp.
 """
 
 from distutils.core import setup
@@ -10,7 +10,7 @@ def long_description():
         readme_text = readme.read()
     return(readme_text)
 
-setup(name='gitPLOS',
+setup(name='oa_nlp',
       version='0.1.0',
       description='Provides tools for PLOS search API and build NLTK corpora.',
       long_description=long_description(),
@@ -18,9 +18,9 @@ setup(name='gitPLOS',
       author_email='wtoconnor at gmail dot com',
       url='https://github.com/openAccess/gitPLOS',
       package_dir={'': 'src'},
-      packages=['gitPLOS',
-                'gitPLOS.nltk',
-                'gitPLOS.plosapi',
+      packages=['oa_nlp',
+                'oa_nlp.nltk',
+                'oa_nlp.plos_api',
                 ],
 
       scripts=['bin/gitplos'],

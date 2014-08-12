@@ -1,11 +1,20 @@
-'''
-'''
+# -*- coding: utf-8 -*-
+# Open Access Natural Language Processing: NLTK Corpus Builder 
+#
+# Copyright (C) 2011-2014 OA_NLP Project
+# Author: Bill OConnor <wtoconnor@gmail.com>
+# For license information, see LICENSE.TXT
+"""
+
+
+
+"""
 from __future__ import division
 import os, re, nltk, json
 import codecs
 from util import doi2fn
 from datetime import datetime
-from gitPLoS.search.query import articleUrl, articleXML
+from ao_nlp.plos_api.solr as oa_nlp import article_page_url, article_xml_url
 
 # These fields are required for the corpus
 QUERY_RTN_FLDS = ['id','journal','publication_date',
@@ -14,21 +23,20 @@ QUERY_RTN_FLDS = ['id','journal','publication_date',
                  ]
 
 class Builder(object):
-    """
-    A corpus builder.
-    """
-    def __init__(self, query, root):
-        """
-        """
+  """
+  OA_NLP corpus builder for NLTK compatibility.
+  """
+  def __init__(self, query, root):
         self._root = root
-        self._corpus_info = info = {}
-        info['creation_date'] = datetime.now().isoformat()
-        info['query'] = query
-        info['article_link'] = {}
-        info['xml_link'] = {}
-        info['c2d'] = {}
-        info['d2c'] = {}
-	info['d2info'] = {}
+        self._corpus_info = {
+          'creation_date' : datetime.now().isoformat(),
+          'query'         : query,
+          'article_link'  : dict(),
+          'xml_link'      : dict(),
+          'c2d'           : dict(),
+          'd2c'           : dict(),
+	  'd2info'        : dict(),
+        }
 
         os.mkdir( root )
         return

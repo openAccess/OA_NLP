@@ -9,7 +9,7 @@ Usage:
   solr.py [options] QUERY ...
   
 Examples:
-  solr.py --journals=pone,pbio -l 20 --fields=title,abstract "title:('DNA' AND 'Mitocondria')" 
+  solr.py --journals=pone,pbio -l 20 --fields=title,abstract "title:('DNA' AND 'Mitochondria')" 
   
 Options:
   -h --help               show this help and exit.
@@ -23,11 +23,6 @@ Options:
                           
   -v --version            show program version and exit.
   
-  -V --verbosity=<level>  set how much information is printed 
-                          to the console during execution  
-                          (one of: "CRITICAL","ERROR","WARNING", 
-                          "INFO", "DEBUG") [default: WARNING] 
-                          
   -f --fields=<list>      list of fields to return in search results.
                           Fields can be specified is a comma separated
                           list.(ex: id,journal,title,body,author,abstract,subject) 
@@ -37,6 +32,9 @@ Options:
                           One or more journal identifiers in a comma 
                           separated list. (ex: pone,pbio,pmed,pgen,pcbi,pntd,ppat)
                           [default: *]
+  
+  -r --research_only      return research articles only. Same as specifying 
+                          'article_type:"Research Article"' as part of the query.
 Author:
   Bill OConnor
   
@@ -44,7 +42,6 @@ License:
   Apache 2.0
     
 """
-import logging
 import os
 import sys
 import json
@@ -55,6 +52,7 @@ __version__ = "0.1"
 __all__ = ['article_page_url', 'article_xml_url', 'Query', 'mkJrnlQuery']
 
 _search_url = 'http://api.plos.org/search'
+_logger = None
 
 """
    _id_2_journal - map a 4 character journal id to quoted journal name
@@ -136,11 +134,12 @@ def _build_conjunctive_query_str(queries=['*:*'], journal_ids=['*']):
   """
   _build_conjuntive_query_str - build a conjunctive query 
   """
+  new_query_str = [ q for q in queries ]
   if not journal_ids[0] == '*':
     journal_str = _jrnl_query_params_str(journal_ids)
-    queries.append(journal_str)
+    new_query_str.append(journal_str)
     
-  return ' AND '.join(queries)
+  return ' AND '.join(new_query_str)
   
 def article_page_url(doi):
   """
@@ -203,7 +202,7 @@ class Query(object):
     if self.cursor == self.limit:
       raise StopIteration
       
-    if self.buffer_cursor == self.chunk_size:
+    if self.buffer_cursor == self.num_returned:
       self.buffer_cursor = 0
       self._fetch_docs(self.buffer_cursor, self.chunk_size)
       if self.num_returned == 0:
@@ -213,6 +212,8 @@ class Query(object):
     self.buffer_cursor += 1 
     self.cursor += 1  
     return doc
+
+####################### MAIN ##########################
 
 if __name__ == "__main__":
   from docopt import docopt  
@@ -229,6 +230,7 @@ if __name__ == "__main__":
 
   if args['--fields'] == None:
     sys.exit('--fields option must contain one or more field identifiers.')
+  
   field_ids = args['--fields'].split(',')
   
   if args['--journals'] == None:
@@ -236,13 +238,14 @@ if __name__ == "__main__":
     
   journal_ids = args['--journals'].split(',')  
   queries = args['QUERY']
+
+  if args['--research_only']:
+    queries.append('article_type:"Research Article"')
  
   pq = Query(api_key, queries, field_ids, journal_ids, limit=limit)
   count = 1
   for r in pq:
-    print ('Rec#{c}'.format(c=str(count)))
-    for f in field_ids:
-      print (u'{f}:  {v}'.format(f=f, v=r.get(f)))
+    json_dict = dict()
+    json_dict['{c}'.format(c=str(count))] = { f : r.get(f) for f in field_ids }
+    print(json.dumps(json_dict, indent=5))
     count += 1
-
-

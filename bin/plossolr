@@ -1,0 +1,82 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+plos_api solr  
+
+Make queries against the PLOS solr api. http://api.plos.org/search
+
+Usage:
+  plossolr [options] QUERY ...
+  
+Examples:
+  plossolr --journals=pone,pbio -l 20 --fields=title,abstract "title:('DNA' AND 'Mitochondria')" 
+  
+Options:
+  -h --help               show this help and exit.
+  
+  -a --api-key=<key>      api key [default: 7Jne3TIPu6DqFCK]
+  
+  -l --limit=<n>          limit the number of returned records. 
+                          Set limit to "*" to iterate through 
+                          the entire returned record set.
+                          [default: 99] 
+                          
+  -v --version            show program version and exit.
+  
+  -f --fields=<list>      list of fields to return in search results.
+                          Fields can be specified is a comma separated
+                          list.(ex: id,journal,title,body,author,abstract,subject) 
+                          [default: id,title,author]
+                          
+  -j --journals=<list>    specify a source journal(s) to search. 
+                          One or more journal identifiers in a comma 
+                          separated list. (ex: pone,pbio,pmed,pgen,pcbi,pntd,ppat)
+                          [default: *]
+  
+  -r --research_only      return research articles only. Same as specifying 
+                          'article_type:"Research Article"' as part of the query.
+Author:
+  Bill OConnor
+  
+License:
+  Apache 2.0
+    
+"""
+import json
+from oa_nlp.plos_api.solr import Query
+from docopt import docopt  
+
+__version__ = '0.1'
+
+args = docopt(__doc__,
+              argv=None,
+              version='plos_api.solr v.' + __version__,
+              options_first=True)
+                
+api_key = args['--api-key']
+if args['--limit'] == '*':
+  limit = sys.maxint
+else:
+  limit = int(args['--limit'])
+
+  if args['--fields'] == None:
+    sys.exit('--fields option must contain one or more field identifiers.')
+  
+  field_ids = args['--fields'].split(',')
+  
+  if args['--journals'] == None:
+    sys.exit('--journals option must contain one or more journal identifiers.')
+    
+  journal_ids = args['--journals'].split(',')  
+  queries = args['QUERY']
+
+  if args['--research_only']:
+    queries.append('article_type:"Research Article"')
+ 
+  pq = Query(api_key, queries, field_ids, journal_ids, limit=limit)
+  count = 1
+  for r in pq:
+    json_dict = dict()
+    json_dict['{c}'.format(c=str(count))] = { f : r.get(f) for f in field_ids }
+    print(json.dumps(json_dict, indent=5))
+    count += 1
