@@ -141,22 +141,26 @@ def _build_conjunctive_query_str(queries=['*:*'], journal_ids=['*']):
     
   return ' AND '.join(new_query_str)
   
-def article_page_url(doi):
+def article_page_url(doi, pretty=False):
   """
   article_page_url- return a valid link to the article page given 
                     the plos article doi.
   """
   url = _journal_url(doi)
-  return '{url}/article/info%3Adoi%2F{doi}'.format(url=url, doi=quote(doi))
+  _doi = 'info:doi/'+ doi
+  _doi = quote(_doi) if not pretty else _doi
+  return '{url}/article/{doi}'.format(url=url, doi=_doi)
 
-def article_xml_url(doi):
+def article_xml_url(doi, pretty=False):
   """
   article_xml_url - return a valid link to the article XML give the journal
                     the article doi.
   """
-  url = _journal_url(doi)
+  url = _journal_url(doi) 
+  _doi = 'info:doi/'+ doi
+  _doi = quote(_doi) if not pretty else _doi 
   return '{url}/article/fetchObjectAttachment.action?representation=XML'\
-         '&uri=info%3Adoi%2F{doi}'.format(url=url, doi=quote(doi))
+         '&uri={doi}'.format(url=url, doi=_doi)
     
 class Query(object):
   """
@@ -166,10 +170,7 @@ class Query(object):
                      start=0, limit=99, chunk_size=400          ):
     self.start = start; 
     self.limit = limit; 
-    if limit < chunk_size:
-      self.chunk_size = limit
-    else:
-      self.chunk_size = chunk_size
+    self.chunk_size = limit if limit < chunk_size else chunk_size
     self.cursor = 0
     self.buffer_cursor = 0
     self.qmap = _build_query_map(api_key, self.start, self.chunk_size, 
@@ -182,6 +183,8 @@ class Query(object):
     _set_query_map(self.qmap, start, rows)
     (resp, url) = _do_query(self.qmap)
     self.numFound = int(resp['numFound'])
+    if self.numFound < self.limit:
+      self.limit = self.numFound
     self.buffer = resp['docs']
     self.num_returned = len(self.buffer)
     return
@@ -196,21 +199,20 @@ class Query(object):
 
   # Iterator Next    
   def next(self):
-    if self.num_returned == 0:
-      raise StopIteration
-      
     if self.cursor == self.limit:
       raise StopIteration
-      
-    if self.buffer_cursor == self.num_returned:
+
+    if self.buffer_cursor == self.chunk_size:
       self.buffer_cursor = 0
-      self._fetch_docs(self.buffer_cursor, self.chunk_size)
+      self._fetch_docs(self.cursor, self.chunk_size)
+
       if self.num_returned == 0:
         raise StopIteration
 
     doc = self.buffer[self.buffer_cursor]   
     self.buffer_cursor += 1 
     self.cursor += 1  
+
     return doc
 
 ####################### MAIN ##########################
@@ -223,10 +225,7 @@ if __name__ == "__main__":
                 options_first=True)
                 
   api_key = args['--api-key']
-  if args['--limit'] == '*':
-    limit = sys.maxint
-  else:
-    limit = int(args['--limit'])
+  limit = sys.maxint if args['--limit'] == '*' else int(args['--limit'])
 
   if args['--fields'] == None:
     sys.exit('--fields option must contain one or more field identifiers.')

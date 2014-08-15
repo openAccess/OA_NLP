@@ -23,7 +23,7 @@ setup(name='oa_nlp',
                 'oa_nlp.plos_api',
                 ],
 
-      scripts=['bin/gitplos'],
+      scripts=['bin/plossolr'],
       data_files=[('', ['README.md'])],
       classifiers=['Development Status :: 3 - Alpha',
                    'Environment :: Console',
