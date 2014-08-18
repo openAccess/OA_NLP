@@ -12,11 +12,12 @@ def long_description():
 
 setup(name='oa_nlp',
       version='0.1.0',
-      description='Provides tools for PLOS search API and build NLTK corpora.',
+      description='Open Access Natural Language processing provides tools for PLOS '
+                  ' search API and build NLTK corpora.',
       long_description=long_description(),
       author='Bill OConnor',
       author_email='wtoconnor at gmail dot com',
-      url='https://github.com/openAccess/gitPLOS',
+      url='https://github.com/openAccess/OA_NLP',
       package_dir={'': 'src'},
       packages=['oa_nlp',
                 'oa_nlp.nltk',
